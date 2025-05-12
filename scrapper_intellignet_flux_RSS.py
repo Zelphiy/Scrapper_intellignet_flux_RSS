@@ -1,9 +1,9 @@
-# Importation des bibliothèques
 import asyncio
 import aiohttp
 import feedparser
 import logging
 import sys
+import time  # Ajout de la bibliothèque time
 
 class Logger(object):
     def __init__(self, filename="console_output.txt"):
@@ -60,8 +60,8 @@ def find_matching_articles(parsed_feed, keywords):
 
 async def fetch_feed(session, url):
     try:
-        # Tente de récupérer le contenu du flux avec un timeout de 10 secondes
-        async with session.get(url, timeout=10) as response:
+        # Tente de récupérer le contenu du flux sans spécifier de timeout
+        async with session.get(url) as response:
             content = await response.read()
             return url, feedparser.parse(content)
     except Exception as e:
@@ -80,7 +80,7 @@ async def scan_all_feeds(feeds_url, keywords):
                 matches = find_matching_articles(parsed_feed, keywords)
                 articles.extend(matches) # Ajoute les articles trouvés
     return articles
-            
+             
 def display_articles(articles):
     # Affichage des articles correspondants
     print(f"\n{len(articles)} articles trouvés :\n")
@@ -90,6 +90,8 @@ def display_articles(articles):
         print(f"   Mot-clé : {article['keyword']}\n")
         
 def main():
+    start_time = time.time()  # Démarre le chronomètre
+    
     rss_list = load_rss_list() # Charge la liste des flux RSS
     keywords = load_keywords() # Charge la liste des mots-clés
     print(f"[INFO] {len(rss_list)} flux RSS chargés.")
@@ -103,7 +105,10 @@ def main():
         # Capture toute erreur non prévue
         logging.error(f"[Erreur critique] {e}")
         print("[ERREUR] Une erreur critique est survenue. Voir error.log pour plus de détails.")
-   
+    
+    end_time = time.time()  # Arrête le chronomètre
+    execution_time = end_time - start_time  # Calcul du temps d'exécution
+    print(f"[INFO] Temps d'exécution: {execution_time:.2f} secondes.")  # Affiche le temps d'exécution
    
 # Point d’entrée du script     
 if __name__ == "__main__":
